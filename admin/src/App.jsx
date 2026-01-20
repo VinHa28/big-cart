@@ -1,12 +1,13 @@
-import { Button, DatePicker } from "antd";
-import CreateCategory from "./components/test";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AdminRoutes from "./routes/AdminRoutes";
 
-function App() {
+export default function App() {
   return (
-    <div style={{ padding: 24 }}>
-      <CreateCategory></CreateCategory>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {AdminRoutes()}
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
