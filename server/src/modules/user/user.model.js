@@ -9,7 +9,7 @@ const addressSchema = new mongoose.Schema(
     phoneNumber: { type: String, required: true },
     isDefault: { type: Boolean, default: false },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const userSchema = new mongoose.Schema(
@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.model("User", userSchema);
