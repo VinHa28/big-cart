@@ -1,4 +1,4 @@
-import userModel from "../user/user.model";
+import userModel from "../user/user.model.js";
 
 export const login = async (req, res) => {
   try {
@@ -10,7 +10,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({ username });
+    const user = await userModel.findOne({ username }).lean();
 
     if (!user) {
       return res.status(401).json({
