@@ -36,3 +36,21 @@ export const login = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const fakeLogin = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ role: "user" }).lean();
+    if (!user) return res.status(404).json({ message: "No user found" });
+
+    res.json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
