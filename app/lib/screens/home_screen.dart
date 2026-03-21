@@ -1,6 +1,7 @@
 import 'package:app/constants/app_assets.dart';
 import 'package:app/mock/mock_data.dart';
 import 'package:app/screens/category_list_screen.dart';
+import 'package:app/screens/product_list_screen.dart';
 import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/product_card.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -33,14 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
           // Danh sách các slivers (mảnh ghép cuộn)
           slivers: [
             // 1. App Bar cuộn (chứa Search Bar)
-            SliverAppBar(
-              backgroundColor: AppColors.scaffoldBackground,
-              elevation: 0,
-              floating: true, // App bar xuất hiện ngay khi cuộn xuống
-              pinned: false, // App bar không cố định khi cuộn lên hết
-              title: _buildSearchBar(),
-              automaticallyImplyLeading: false, // Ẩn nút back mặc định nếu có
-            ),
+            // SliverAppBar(
+            //   backgroundColor: AppColors.scaffoldBackground,
+            //   elevation: 0,
+            //   floating: true, // App bar xuất hiện ngay khi cuộn xuống
+            //   pinned: false, // App bar không cố định khi cuộn lên hết
+            //   title: _buildSearchBar(),
+            //   automaticallyImplyLeading: false, // Ẩn nút back mặc định nếu có
+            // ),
 
             // 2. Banner và Tiêu đề Categories
             SliverToBoxAdapter(
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildBannerSlider(),
                     const SizedBox(height: 20),
                     // Tiêu đề Categories
-                    _buildSectionHeader('Categories'),
+                    _buildSectionHeader('Categories', "/categories"),
                     const SizedBox(height: 15),
                   ],
                 ),
@@ -71,12 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
-                child: _buildSectionHeader('Featured products'),
+                child: _buildSectionHeader('Featured products', "/categories"),
               ),
             ),
 
-            // 5. Grid Sản phẩm nổi bật (Sử dụng SliverPadding & SliverGrid)
-            // Đây là phần cốt lõi sửa lỗi và tối ưu hiệu năng
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverGrid(
@@ -137,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Widget xây dựng Tiêu đề các mục (với icon >)
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, String routeName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -149,12 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.chevron_right, color: Colors.grey, size: 28),
           onPressed: () {
             // Bấm vào dấu mũi tên để sang màn hình danh sách Category
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CategoryListScreen(),
-              ),
-            );
+            Navigator.pushNamed(context, routeName);
           },
         ),
       ],
@@ -242,7 +236,13 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CategoryCard(
               category: dummyCategories[index],
               onTap: () {
-                print("Selected: ${dummyCategories[index].name}");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ProductListScreen(category: dummyCategories[index]),
+                  ),
+                );
               },
             ),
           );

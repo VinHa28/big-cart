@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import 'home_screen.dart'; // Import các màn hình con
-import 'profile_screen.dart';
-import 'favorites_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});

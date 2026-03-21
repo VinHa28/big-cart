@@ -1,3 +1,4 @@
+import 'package:app/screens/category_list_screen.dart';
 import 'package:app/screens/main_wrapper.dart';
 import 'package:app/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/home': (context) => const MainWrapper(),
+        '/categories': (context) => const CategoryListScreen(),
       },
     );
   }
