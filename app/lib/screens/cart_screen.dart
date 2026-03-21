@@ -1,10 +1,7 @@
-import 'package:app/models/cart.dart';
+import 'package:app/mock/mock_data.dart';
 import 'package:flutter/material.dart';
 import '../widgets/cart_item_widget.dart';
-// Import model Product để tạo dữ liệu giả lập nếu cần,
-// nhưng trong file này không dùng trực tiếp biến Product nào cả
 import '../constants/app_colors.dart';
-import 'home_screen.dart'; // Import màn hình Home để quay về khi bấm nút
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -14,25 +11,6 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  // DANH SÁCH GIỎ HÀNG: Thay đổi tại đây để test
-  // 1. Giỏ hàng có sản phẩm (Code cũ)
-  /*
-  List<CartItem> cartItems = [
-    CartItem(
-      product: Product(id: '1', name: 'Fresh Broccoli', price: 2.22, unit: '1.50 lbs', image: 'assets/images/broccoli.png', description: '', stock: 10, categoryId: '1', isActive: true),
-      quantity: 5,
-    ),
-    CartItem(
-      product: Product(id: '2', name: 'Black Grapes', price: 2.22, unit: '5.0 lbs', image: 'assets/images/grapes.png', description: '', stock: 10, categoryId: '1', isActive: true),
-      quantity: 5,
-    ),
-  ];
-  */
-
-  // 2. Giỏ hàng TRỐNG (Mới - Dùng để test giao diện Empty Cart)
-  List<CartItem> cartItems = [];
-
-  // Các hàm tính toán giữ nguyên
   double get subtotal => cartItems.fold(
     0,
     (sum, item) => sum + (item.product.price * item.quantity),
@@ -66,9 +44,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ==========================================
-  // 1. WIDGET CHO MÀN HÌNH EMPTY CART (MỚI)
-  // ==========================================
   Widget _buildEmptyCartBody(BuildContext context) {
     return Column(
       children: [

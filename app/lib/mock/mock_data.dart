@@ -1,3 +1,4 @@
+import 'package:app/models/address.dart';
 import 'package:app/models/cart.dart';
 import 'package:app/models/category.dart';
 import 'package:app/models/product.dart';
@@ -159,3 +160,22 @@ List<CartItem> cartItems = [
     quantity: 5,
   ),
 ];
+
+List<Address> addresses = [
+    Address(
+      fullname: "Russell Austin",
+      phoneNumber: "+1 202 555 0142",
+      address: "2811 Crescent Day, LA Port",
+      city: "California",
+      country: "USA",
+      isDefault: true,
+    ),
+    Address(
+      fullname: "Jessica Simpson",
+      phoneNumber: "+1 202 555 0142",
+      address: "2811 Crescent Day, LA Port",
+      city: "California",
+      country: "USA",
+      isDefault: false,
+    ),
+  ];

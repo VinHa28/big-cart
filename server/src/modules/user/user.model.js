@@ -9,7 +9,7 @@ const addressSchema = new mongoose.Schema(
     phoneNumber: { type: String, required: true },
     isDefault: { type: Boolean, default: false },
   },
-  { _id: false },
+  { _id: true },
 );
 
 const userSchema = new mongoose.Schema(

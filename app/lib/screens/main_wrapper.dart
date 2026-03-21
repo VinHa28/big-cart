@@ -1,4 +1,5 @@
 import 'package:app/screens/cart_screen.dart';
+import 'package:app/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import 'home_screen.dart'; // Import các màn hình con
@@ -17,10 +18,9 @@ class _MainWrapperState extends State<MainWrapper> {
   // Danh sách các màn hình con tương ứng với các tab
   final List<Widget> _screens = const [
     HomeScreen(),
+    AccountScreen(),
     CartScreen(),
     CartScreen(),
-    CartScreen(),
-    // ProfileScreen(),
     // FavoritesScreen(),
     // Màn hình giỏ hàng có thể được xử lý riêng, không cần ở đây
   ];
