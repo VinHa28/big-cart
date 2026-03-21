@@ -1,33 +1,6 @@
 import 'package:app/models/category.dart';
 import 'package:app/models/product.dart';
 
-List<Product> mockProducts = [
-  Product(
-    id: "1",
-    name: "Táo đỏ",
-    description: "Táo nhập khẩu",
-    price: 50000,
-    unit: "kg",
-    stock: 10,
-    image:
-        "https://res.cloudinary.com/vinhhv2807/image/upload/v1774017667/avacoda_zk98k7.png",
-    categoryId: "c1",
-    isActive: true,
-  ),
-  Product(
-    id: "2",
-    name: "Cá hồi",
-    description: "Cá hồi tươi",
-    price: 200000,
-    unit: "kg",
-    stock: 5,
-    image:
-        "https://res.cloudinary.com/vinhhv2807/image/upload/v1774017667/avacoda_zk98k7.png",
-    categoryId: "c2",
-    isActive: true,
-  ),
-];
-
 final List<Category> dummyCategories = [
   Category(
     id: '1',
@@ -84,7 +57,8 @@ final List<Product> dummyProducts = [
   Product(
     id: '1',
     name: 'Fresh Peach',
-    description: '',
+    description:
+        'Fresh peaches are juicy and naturally sweet. They may have slight marks on the skin, but inside they are soft, fragrant, and full of flavor.',
     price: 8.0,
     unit: 'dozen',
     stock: 10,
@@ -95,7 +69,8 @@ final List<Product> dummyProducts = [
   Product(
     id: '2',
     name: 'Avocado',
-    description: '',
+    description:
+        'Avocados are creamy and rich in healthy fats. Their slightly rough skin hides a smooth, buttery texture perfect for salads and spreads.',
     price: 7.0,
     unit: '2.0 lbs',
     stock: 5,
@@ -106,7 +81,8 @@ final List<Product> dummyProducts = [
   Product(
     id: '3',
     name: 'Pineapple',
-    description: '',
+    description:
+        'Pineapples are tropical fruits with a sweet and tangy taste. Their tough outer skin protects the juicy, refreshing flesh inside.',
     price: 7.0,
     unit: '2.0 lbs',
     stock: 5,
@@ -117,7 +93,8 @@ final List<Product> dummyProducts = [
   Product(
     id: '4',
     name: 'Black Grapes',
-    description: '',
+    description:
+        'Black grapes are small, sweet, and packed with antioxidants. They may have a natural dusty coating but are fresh and delicious.',
     price: 7.0,
     unit: '2.0 lbs',
     stock: 5,
@@ -128,7 +105,8 @@ final List<Product> dummyProducts = [
   Product(
     id: '5',
     name: 'Pomegranate',
-    description: '',
+    description:
+        'Pomegranates have a tough outer shell with juicy ruby-red seeds inside. They offer a sweet and slightly tart flavor.',
     price: 7.0,
     unit: '2.0 lbs',
     stock: 5,
@@ -137,9 +115,10 @@ final List<Product> dummyProducts = [
     isActive: true,
   ),
   Product(
-    id: '2',
-    name: 'Fresh B roccoli',
-    description: '',
+    id: '6',
+    name: 'Fresh Broccoli',
+    description:
+        'Fresh broccoli is crisp and full of nutrients. Its deep green florets are perfect for steaming, stir-frying, or adding to healthy meals.',
     price: 7.0,
     unit: '2.0 lbs',
     stock: 5,
