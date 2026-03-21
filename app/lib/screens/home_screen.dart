@@ -1,5 +1,6 @@
 import 'package:app/constants/app_assets.dart';
 import 'package:app/mock/mock_data.dart';
+import 'package:app/screens/category_list_screen.dart';
 import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/product_card.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -101,9 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // 6. Khoảng trống cuối trang (để không bị che bởi BottomNav)
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 30),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 30)),
           ],
         ),
       ),
@@ -146,7 +145,18 @@ class _HomeScreenState extends State<HomeScreen> {
           title,
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        const Icon(Icons.chevron_right, color: Colors.grey, size: 28),
+        IconButton(
+          icon: const Icon(Icons.chevron_right, color: Colors.grey, size: 28),
+          onPressed: () {
+            // Bấm vào dấu mũi tên để sang màn hình danh sách Category
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CategoryListScreen(),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
