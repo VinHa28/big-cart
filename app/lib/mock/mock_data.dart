@@ -1,3 +1,4 @@
+import 'package:app/models/cart.dart';
 import 'package:app/models/category.dart';
 import 'package:app/models/product.dart';
 
@@ -125,5 +126,36 @@ final List<Product> dummyProducts = [
     image: 'assets/images/products/broccoli.png',
     categoryId: 'cat1',
     isActive: true,
+  ),
+];
+
+List<CartItem> cartItems = [
+  CartItem(
+    product: Product(
+      id: '1',
+      name: 'Fresh Broccoli',
+      price: 2.22,
+      unit: '1.50 lbs',
+      image: 'assets/images/products/broccoli.png',
+      description: '',
+      stock: 10,
+      categoryId: '1',
+      isActive: true,
+    ),
+    quantity: 5,
+  ),
+  CartItem(
+    product: Product(
+      id: '2',
+      name: 'Black Grapes',
+      price: 2.22,
+      unit: '5.0 lbs',
+      image: 'assets/images/products/grapes.png',
+      description: '',
+      stock: 10,
+      categoryId: '1',
+      isActive: true,
+    ),
+    quantity: 5,
   ),
 ];
