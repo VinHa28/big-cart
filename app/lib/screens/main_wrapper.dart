@@ -35,7 +35,7 @@ class _MainWrapperState extends State<MainWrapper> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -89,35 +89,20 @@ class _MainWrapperState extends State<MainWrapper> {
               ),
               label: 'Favorites',
             ),
-            // Tab Giỏ hàng - Widget đặc biệt
-            BottomNavigationBarItem(icon: _buildCartIcon(), label: 'Cart'),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Icon(
+                  _selectedIndex == 3
+                      ? Icons.shopping_cart
+                      : Icons.shopping_cart_outlined,
+                  size: 28,
+                ),
+              ),
+              label: 'Cart',
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Phương thức để xây dựng icon Giỏ hàng màu xanh lá cây
-  Widget _buildCartIcon() {
-    return Container(
-      width: 60,
-      height: 60,
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-        color: AppColors.primary, // Màu xanh lá cây
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.shopping_bag_outlined,
-        color: Colors.white,
-        size: 28,
       ),
     );
   }
