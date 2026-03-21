@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 class CategoryFilterModal extends StatelessWidget {
   const CategoryFilterModal({super.key});

@@ -1,4 +1,5 @@
 import 'package:app/screens/cart_screen.dart';
+import 'package:app/screens/favorites_screen.dart';
 import 'package:app/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
@@ -19,10 +20,8 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _screens = const [
     HomeScreen(),
     AccountScreen(),
+    FavoritesScreen(),
     CartScreen(),
-    CartScreen(),
-    // FavoritesScreen(),
-    // Màn hình giỏ hàng có thể được xử lý riêng, không cần ở đây
   ];
 
   @override

@@ -1,6 +1,5 @@
 import 'package:app/constants/app_assets.dart';
 import 'package:app/mock/mock_data.dart';
-import 'package:app/screens/category_list_screen.dart';
 import 'package:app/screens/product_list_screen.dart';
 import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/product_card.dart';
@@ -115,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: TextField(
