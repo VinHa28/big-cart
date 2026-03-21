@@ -22,7 +22,7 @@ class CategoryCard extends StatelessWidget {
               height: 52,
               width: 52,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
+                color: category.colorValue,
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(
