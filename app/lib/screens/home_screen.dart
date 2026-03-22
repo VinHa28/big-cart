@@ -1,8 +1,9 @@
 import 'package:app/constants/app_assets.dart';
-import 'package:app/mock/mock_data.dart';
 import 'package:app/models/category.dart';
+import 'package:app/models/product.dart';
 import 'package:app/screens/product_list_screen.dart';
 import 'package:app/services/category_service.dart';
+import 'package:app/services/product_service.dart';
 import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/product_card.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -20,13 +21,19 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
 
   final CategoryService _categoryService = CategoryService();
+  final ProductService _productService = ProductService();
+
   List<Category> _categories = [];
+  List<Product> _products = [];
+
   bool _isLoadingCategories = true;
+  bool _isLoadingProducts = true;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadProducts();
   }
 
   Future<void> _loadCategories() async {
@@ -37,8 +44,24 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoadingCategories = false;
       });
     } catch (e) {
+      print("Error loading categories: $e");
       setState(() {
         _isLoadingCategories = false;
+      });
+    }
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final data = await _productService.getAllProducts();
+      setState(() {
+        _products = data;
+        _isLoadingProducts = false;
+      });
+    } catch (e) {
+      print("Error loading products: $e");
+      setState(() {
+        _isLoadingProducts = false;
       });
     }
   }
@@ -56,17 +79,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // 1. App Bar cuộn (chứa Search Bar)
+            // AppBar
             SliverAppBar(
               backgroundColor: AppColors.scaffoldBackground,
               elevation: 0,
-              floating: true, // App bar xuất hiện ngay khi cuộn xuống
-              pinned: false, // App bar không cố định khi cuộn lên hết
+              floating: true,
               title: _buildSearchBar(),
-              automaticallyImplyLeading: false, // Ẩn nút back mặc định nếu có
+              automaticallyImplyLeading: false,
             ),
 
-            // 2. Banner và Tiêu đề Categories
+            // Banner + Category title
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
@@ -75,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildBannerSlider(),
                     const SizedBox(height: 20),
-                    // Tiêu đề Categories
                     _buildSectionHeader('Categories', "/categories"),
                     const SizedBox(height: 15),
                   ],
@@ -83,15 +104,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // 3. Danh sách Categories (SliverToBoxAdapter vì là ListView nằm ngang)
+            // Category list
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.only(left: 20), // Chỉ padding trái
+                padding: const EdgeInsets.only(left: 20),
                 child: _buildCategoryList(),
               ),
             ),
 
-            // 4. Tiêu đề Featured Products
+            // Product title
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
@@ -99,31 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 cột
-                  mainAxisSpacing: 15, // Khoảng cách dòng
-                  crossAxisSpacing: 15, // Khoảng cách cột
-                  childAspectRatio: 0.7, // Tỷ lệ chiều rộng/chiều cao card
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return ProductCard(
-                      product: dummyProducts[index],
-                      onAdd: () {
-                        // Logic thêm vào giỏ hàng
-                        print("Đã thêm ${dummyProducts[index].name} vào giỏ");
-                      },
-                    );
-                  },
-                  childCount: dummyProducts.length, // Số lượng sản phẩm
-                ),
-              ),
-            ),
+            // Product list
+            _buildProductList(),
 
-            // 6. Khoảng trống cuối trang (để không bị che bởi BottomNav)
             const SliverToBoxAdapter(child: SizedBox(height: 30)),
           ],
         ),
@@ -131,9 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ====================== CÁC HÀM XÂY DỰNG WIDGET (HELPER FUNCTIONS) ======================
+  // ================= UI =================
 
-  // Widget xây dựng Search Bar
   Widget _buildSearchBar() {
     return Container(
       height: 50,
@@ -141,24 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: TextField(
+      child: const TextField(
         decoration: InputDecoration(
           hintText: 'Search keywords..',
-          hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
-          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-          // Icon lọc ở bên phải
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.filter_list_outlined, color: Colors.grey),
-            onPressed: () {},
-          ),
+          prefixIcon: Icon(Icons.search),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
   }
 
-  // Widget xây dựng Tiêu đề các mục (với icon >)
   Widget _buildSectionHeader(String title, String routeName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,9 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         IconButton(
-          icon: const Icon(Icons.chevron_right, color: Colors.grey, size: 28),
+          icon: const Icon(Icons.chevron_right),
           onPressed: () {
-            // Bấm vào dấu mũi tên để sang màn hình danh sách Category
             Navigator.pushNamed(context, routeName);
           },
         ),
@@ -178,17 +167,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget Banner Slider
   Widget _buildBannerSlider() {
     return Column(
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 190.0,
+            height: 190,
             autoPlay: true,
             enlargeCenterPage: true,
-            aspectRatio: 16 / 9,
-            viewportFraction: 0.95, // Tăng lên một chút cho đẹp
+            viewportFraction: 0.95,
             onPageChanged: (index, reason) {
               setState(() {
                 _currentBannerIndex = index;
@@ -196,46 +183,34 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           items: imgList.map((item) {
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
-                child: Image.asset(
-                  item,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  // Thêm loading hoặc error builder nếu cần
-                ),
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Image.asset(
+                item,
+                fit: BoxFit.cover,
+                width: double.infinity,
               ),
             );
           }).toList(),
         ),
         const SizedBox(height: 10),
-        // Dots Indicator
         _buildDotsIndicator(),
       ],
     );
   }
 
-  // Widget Dots Indicator cho Banner
   Widget _buildDotsIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: imgList.asMap().entries.map((entry) {
-        return GestureDetector(
-          onTap: () {
-            // Không nên setState ở đây vì CarouselSlider không tự chuyển
-            // Nếu muốn tap để chuyển banner, cần dùng CarouselController
-          },
-          child: Container(
-            width: 8.0,
-            height: 8.0,
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(
-                _currentBannerIndex == entry.key ? 0.9 : 0.2,
-              ),
+        return Container(
+          width: 8,
+          height: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primary.withOpacity(
+              _currentBannerIndex == entry.key ? 0.9 : 0.2,
             ),
           ),
         );
@@ -243,21 +218,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget Category List (ListView nằm ngang)
+  // CATEGORY LIST
   Widget _buildCategoryList() {
     if (_isLoadingCategories) {
-      return const Center(child: CircularProgressIndicator());
+      return const SizedBox(
+        height: 85,
+        child: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (_categories.isEmpty) {
-      return const SizedBox(height: 80, child: Center(child: Text("No data")));
+      return const SizedBox(
+        height: 85,
+        child: Center(child: Text("No categories")),
+      );
     }
 
     return SizedBox(
       height: 85,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 20), // Tạo khoảng cách lề trái
         itemCount: _categories.length,
         itemBuilder: (context, index) {
           return CategoryCard(
@@ -266,13 +246,51 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
+                  builder: (_) =>
                       ProductListScreen(category: _categories[index]),
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  // PRODUCT LIST
+  Widget _buildProductList() {
+    if (_isLoadingProducts) {
+      return const SliverToBoxAdapter(
+        child: SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (_products.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Center(child: Text("No products")),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 15,
+          crossAxisSpacing: 15,
+          childAspectRatio: 0.7,
+        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return ProductCard(
+            product: _products[index],
+            onAdd: () {
+              print("Add ${_products[index].name}");
+            },
+          );
+        }, childCount: _products.length),
       ),
     );
   }

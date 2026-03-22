@@ -1,6 +1,8 @@
 import 'package:app/models/product.dart';
 import 'package:app/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../constants/app_colors.dart';
 
 class ProductCard extends StatelessWidget {
@@ -39,11 +41,9 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 15),
                 // Ảnh sản phẩm
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: product.image.startsWith('http')
-                        ? Image.network(product.image, fit: BoxFit.contain)
-                        : Image.asset(product.image, fit: BoxFit.contain),
+                  child: Hero(
+                    tag: product.id, 
+                    child: _buildImage(),
                   ),
                 ),
 
@@ -117,5 +117,39 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    final image = product.image;
+
+    // 1. SVG (ưu tiên check trước)
+    if (image.endsWith('.svg')) {
+      if (image.startsWith('http')) {
+        return SvgPicture.network(
+          image,
+          fit: BoxFit.contain,
+          placeholderBuilder: (context) =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        );
+      } else {
+        return SvgPicture.asset(image, fit: BoxFit.contain);
+      }
+    }
+
+    // 2. Ảnh thường (png, jpg)
+    if (image.startsWith('http')) {
+      return Image.network(
+        image,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+        },
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.image_not_supported),
+      );
+    }
+
+    return Image.asset(image, fit: BoxFit.contain);
   }
 }

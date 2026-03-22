@@ -58,6 +58,7 @@ final List<Category> dummyCategories = [
 final List<Product> dummyProducts = [
   Product(
     id: '1',
+    categoryName: "",
     name: 'Fresh Peach',
     description:
         'Fresh peaches are juicy and naturally sweet. They may have slight marks on the skin, but inside they are soft, fragrant, and full of flavor.',
@@ -70,6 +71,7 @@ final List<Product> dummyProducts = [
   ),
   Product(
     id: '2',
+    categoryName: "",
     name: 'Avocado',
     description:
         'Avocados are creamy and rich in healthy fats. Their slightly rough skin hides a smooth, buttery texture perfect for salads and spreads.',
@@ -82,6 +84,7 @@ final List<Product> dummyProducts = [
   ),
   Product(
     id: '3',
+    categoryName: "",
     name: 'Pineapple',
     description:
         'Pineapples are tropical fruits with a sweet and tangy taste. Their tough outer skin protects the juicy, refreshing flesh inside.',
@@ -94,6 +97,7 @@ final List<Product> dummyProducts = [
   ),
   Product(
     id: '4',
+    categoryName: "",
     name: 'Black Grapes',
     description:
         'Black grapes are small, sweet, and packed with antioxidants. They may have a natural dusty coating but are fresh and delicious.',
@@ -107,6 +111,7 @@ final List<Product> dummyProducts = [
   Product(
     id: '5',
     name: 'Pomegranate',
+    categoryName: "",
     description:
         'Pomegranates have a tough outer shell with juicy ruby-red seeds inside. They offer a sweet and slightly tart flavor.',
     price: 7.0,
@@ -118,6 +123,7 @@ final List<Product> dummyProducts = [
   ),
   Product(
     id: '6',
+    categoryName: "",
     name: 'Fresh Broccoli',
     description:
         'Fresh broccoli is crisp and full of nutrients. Its deep green florets are perfect for steaming, stir-frying, or adding to healthy meals.',
@@ -134,6 +140,7 @@ List<CartItem> cartItems = [
   CartItem(
     product: Product(
       id: '1',
+      categoryName: "",
       name: 'Fresh Broccoli',
       price: 2.22,
       unit: '1.50 lbs',
@@ -148,6 +155,7 @@ List<CartItem> cartItems = [
   CartItem(
     product: Product(
       id: '2',
+      categoryName: "",
       name: 'Black Grapes',
       price: 2.22,
       unit: '5.0 lbs',
@@ -162,20 +170,20 @@ List<CartItem> cartItems = [
 ];
 
 List<Address> addresses = [
-    Address(
-      fullname: "Russell Austin",
-      phoneNumber: "+1 202 555 0142",
-      address: "2811 Crescent Day, LA Port",
-      city: "California",
-      country: "USA",
-      isDefault: true,
-    ),
-    Address(
-      fullname: "Jessica Simpson",
-      phoneNumber: "+1 202 555 0142",
-      address: "2811 Crescent Day, LA Port",
-      city: "California",
-      country: "USA",
-      isDefault: false,
-    ),
-  ];
+  Address(
+    fullname: "Russell Austin",
+    phoneNumber: "+1 202 555 0142",
+    address: "2811 Crescent Day, LA Port",
+    city: "California",
+    country: "USA",
+    isDefault: true,
+  ),
+  Address(
+    fullname: "Jessica Simpson",
+    phoneNumber: "+1 202 555 0142",
+    address: "2811 Crescent Day, LA Port",
+    city: "California",
+    country: "USA",
+    isDefault: false,
+  ),
+];

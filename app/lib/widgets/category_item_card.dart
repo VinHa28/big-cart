@@ -33,7 +33,7 @@ class CategoryItemCard extends StatelessWidget {
               width: 60,
               decoration: BoxDecoration(
                 // Bạn có thể tùy chỉnh màu nền icon dựa trên id hoặc thêm field color vào Model
-                color: Colors.green.withValues(alpha: 0.05),
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
               child: Padding(

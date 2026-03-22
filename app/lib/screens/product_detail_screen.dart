@@ -1,6 +1,7 @@
 import 'package:app/constants/app_colors.dart';
 import 'package:app/models/product.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -34,11 +35,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Center(
               child: Hero(
                 tag: widget.product.id,
-                child: Image.asset(
-                  widget.product.image,
-                  height: 250,
-                  fit: BoxFit.contain,
-                ),
+                child: _buildImage(), // dùng hàm bạn đã fix Cloudinary
               ),
             ),
 
@@ -145,6 +142,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    final image = widget.product.image;
+
+    // SVG
+    if (image.endsWith('.svg')) {
+      if (image.startsWith('http')) {
+        return SvgPicture.network(
+          image,
+          height: 250,
+          fit: BoxFit.contain,
+          placeholderBuilder: (context) => const CircularProgressIndicator(),
+        );
+      } else {
+        return SvgPicture.asset(image, height: 250, fit: BoxFit.contain);
+      }
+    }
+
+    // Ảnh thường
+    if (image.startsWith('http')) {
+      return Image.network(
+        image,
+        height: 250,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const SizedBox(
+            height: 250,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.image_not_supported, size: 50),
+      );
+    }
+
+    return Image.asset(image, height: 250, fit: BoxFit.contain);
   }
 
   // Widget chọn số lượng

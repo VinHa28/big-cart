@@ -34,12 +34,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             stock: 10,
             categoryId: '1',
             isActive: true,
+            categoryName: "",
           ),
         ),
         FavoriteItem(
           product: Product(
             id: '2',
             name: 'Black Grapes',
+            categoryName: "",
             price: 2.22,
             unit: '5.0 lbs',
             image: 'assets/images/products/grapes.png',
