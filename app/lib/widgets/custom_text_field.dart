@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final bool isPassword;
   final bool isObscure;
   final Widget? suffixIcon;
+  final TextEditingController? controller;
 
   const CustomTextField({
     super.key,
@@ -14,6 +15,7 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     this.isObscure = false,
     this.suffixIcon,
+    this.controller
   });
 
   @override
@@ -31,6 +33,7 @@ class CustomTextField extends StatelessWidget {
         ],
       ),
       child: TextField(
+        controller: controller,
         obscureText: isPassword ? isObscure : false,
         decoration: InputDecoration(
           hintText: hintText,

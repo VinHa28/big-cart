@@ -1,4 +1,5 @@
 import 'package:app/constants/app_assets.dart';
+import 'package:app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/login_header.dart';
@@ -12,63 +13,73 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isObscure = true;
+  bool _isLoading = false;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF4F5F9),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const LoginHeader(backgroundImagePath: AppAssets.loginBackground),
-            Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Welcome back !',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Sign in to your account',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 26),
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
-                  const CustomTextField(
-                    hintText: 'Email Address',
-                    icon: Icons.email_outlined,
-                  ),
-                  const SizedBox(height: 20),
+  void _handleLogin() async {
+    FocusScope.of(context).unfocus();
 
-                  CustomTextField(
-                    hintText: 'Password',
-                    icon: Icons.lock_outline,
-                    isPassword: true,
-                    isObscure: _isObscure,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isObscure ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () => setState(() => _isObscure = !_isObscure),
-                    ),
-                  ),
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin")),
+      );
+      return;
+    }
 
-                  const SizedBox(height: 20),
+    setState(() => _isLoading = true);
 
-                  _buildLoginButton(),
-                  const SizedBox(height: 25),
+    try {
+      print("Start login...");
 
-                  _buildSignUpText(),
-                ],
-              ), // Container
-              // ClipRRect
-            ), // Padding
-          ], // outer Column children
-        ), // outer Column
-      ), // SingleChildScrollView
-    ); // Scaffold
+      final result = await _authService.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      print("Result: $result");
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Đăng nhập thành công!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? "Login failed"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Login error: $e");
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Widget _buildLoginButton() {
@@ -76,10 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 55,
       child: ElevatedButton(
-        onPressed: () {
-          // Lệnh điều hướng sang màn hình Signup
-          Navigator.pushNamed(context, '/home');
-        },
+        onPressed: _isLoading ? null : _handleLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6CC51D),
           shape: RoundedRectangleBorder(
@@ -105,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           GestureDetector(
             onTap: () {
-              // Lệnh điều hướng sang màn hình Signup
               Navigator.pushNamed(context, '/signup');
             },
             child: const Text(
@@ -117,6 +124,72 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F5F9),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const LoginHeader(backgroundImagePath: AppAssets.loginBackground),
+            Padding(
+              padding: const EdgeInsets.all(25.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Welcome back !',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'Sign in to your account',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 26),
+
+                  CustomTextField(
+                    controller: _emailController,
+                    hintText: 'Email Address',
+                    icon: Icons.email_outlined,
+                  ),
+                  const SizedBox(height: 20),
+
+                  CustomTextField(
+                    controller: _passwordController,
+                    hintText: 'Password',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isObscure: _isObscure,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscure ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () => setState(() => _isObscure = !_isObscure),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF6CC51D),
+                          ),
+                        )
+                      : _buildLoginButton(),
+
+                  const SizedBox(height: 25),
+
+                  _buildSignUpText(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

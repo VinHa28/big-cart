@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_assets.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/login_header.dart';
-import 'login_screen.dart'; // Import màn hình Login để điều hướng
+import '../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -12,8 +12,69 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  // Chỉ còn State này, không cần state cho ô mật khẩu
   bool _isObscure = true;
+  bool _isLoading = false;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignup() async {
+    FocusScope.of(context).unfocus();
+
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _authService.register(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Đăng ký thành công!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pop(context); // quay về login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Gọi Header với ảnh nền của màn Đăng ký
             const LoginHeader(backgroundImagePath: AppAssets.signupBackground),
-
-            // Phần Form
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 25.0,
@@ -34,36 +92,29 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Tiêu đề mới
                   const Text(
                     'Create account',
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-                  // Phụ đề mới
                   const Text(
                     'Quickly create account',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
 
-                  // Ô nhập 1: Email (Tái sử dụng)
-                  const CustomTextField(
+                  // ✅ Email
+                  CustomTextField(
+                    controller: _emailController,
                     hintText: 'Email address',
                     icon: Icons.email_outlined,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 25),
 
-                  // Ô nhập 2: Phone number (MỚI)
-                  const CustomTextField(
-                    hintText: 'Phone number',
-                    icon: Icons.phone_outlined,
-                  ),
-                  const SizedBox(height: 15),
-
-                  // Ô nhập 3: Password (Tái sử dụng)
+                  // ✅ Password
                   CustomTextField(
-                    hintText: '● ● ● ● ● ● ● ●',
+                    controller: _passwordController,
+                    hintText: 'Password',
                     icon: Icons.lock_outline,
                     isPassword: true,
                     isObscure: _isObscure,
@@ -72,46 +123,39 @@ class _SignupScreenState extends State<SignupScreen> {
                         _isObscure
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
-                        color: Colors.grey,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _isObscure = !_isObscure;
-                        });
-                      },
+                      onPressed: () => setState(() => _isObscure = !_isObscure),
                     ),
                   ),
 
-                  // Màn hình này không có "Remember me" và "Forgot Password"
-                  // Bỏ đoạn code đó đi và thay bằng khoảng cách
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
 
-                  // Nút Đăng ký (Signup Button)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6CC51D),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  // ✅ Button / Loading
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: _handleSignup,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6CC51D),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Signup',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Signup',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
 
-                  // Dòng văn bản điều hướng về Login
+                  const SizedBox(height: 10),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -121,13 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Điều hướng quay về màn Login
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
+                          Navigator.pop(context);
                         },
                         child: const Text(
                           'Login',

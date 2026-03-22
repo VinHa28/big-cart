@@ -1,4 +1,5 @@
 import 'package:app/mock/mock_data.dart';
+import 'package:app/screens/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/cart_item_widget.dart';
 import '../constants/app_colors.dart';
@@ -237,7 +238,18 @@ class _CartScreenState extends State<CartScreen> {
             width: double.infinity,
             height: 60,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CheckoutScreen(
+                      cartItems: cartItems,
+                      subtotal: subtotal,
+                      shipping: shipping,
+                    ),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
