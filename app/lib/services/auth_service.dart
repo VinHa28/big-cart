@@ -16,19 +16,10 @@ class AuthService {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      print("CALL API /login");
-
       final response = await _dio
-          .post(
-            '/auth/login',
-            data: {"email": email, "password": password},
-          )
+          .post('/auth/login', data: {"email": email, "password": password})
           .timeout(const Duration(seconds: 10));
 
-      print("TYPE: ${response.data.runtimeType}");
-      print("DATA: ${response.data}");
-
-      // ✅ Đảm bảo response là Map
       if (response.data is Map<String, dynamic>) {
         return {
           "success": true,

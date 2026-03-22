@@ -26,6 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Category> _categories = [];
   List<Product> _products = [];
 
+  final String userId = "69bfa2020213cda8607ee688";
+
+  // 3. Hàm xử lý thêm vào giỏ hàng
+
   bool _isLoadingCategories = true;
   bool _isLoadingProducts = true;
 
@@ -284,12 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
           childAspectRatio: 0.7,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
-          return ProductCard(
-            product: _products[index],
-            onAdd: () {
-              print("Add ${_products[index].name}");
-            },
-          );
+          return ProductCard(product: _products[index], onAdd: () {});
         }, childCount: _products.length),
       ),
     );

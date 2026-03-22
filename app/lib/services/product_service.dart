@@ -14,8 +14,6 @@ class ProductService {
 
   Future<List<Product>> getAllProducts() async {
     try {
-      print("CALL API GET /products");
-
       final response = await _dio.get('/products');
 
       if (response.statusCode == 200) {

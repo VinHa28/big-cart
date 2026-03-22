@@ -16,8 +16,6 @@ class CategoryService {
   /// Lấy danh sách tất cả category từ backend
   Future<List<Category>> getAllCategories() async {
     try {
-      print("CALL API GET /categories");
-
       final response = await _dio
           .get(
             '/categories/app', // Đường dẫn này sẽ nối tiếp vào baseUrl trong ApiClient

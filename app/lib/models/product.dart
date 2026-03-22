@@ -24,22 +24,35 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    // Xử lý an toàn cho Category để tránh lỗi 'String' is not a subtype of 'int'
+    String catId = '';
+    String catName = '';
+
+    if (json['category'] != null) {
+      if (json['category'] is Map<String, dynamic>) {
+        // Nếu đã populate thành Object
+        catId = json['category']['_id']?.toString() ?? '';
+        catName = json['category']['name']?.toString() ?? '';
+      } else {
+        // Nếu chỉ là String ID
+        catId = json['category'].toString();
+      }
+    }
+
     return Product(
-      id: json['_id'] ?? '',
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      price: (json['price'] as num).toDouble(),
+      // Ép kiểu num an toàn trước khi toDouble
+      price: (json['price'] ?? 0).toDouble(),
       unit: json['unit'] ?? '',
       stock: json['stock'] ?? 0,
       image: json['image'] is String
           ? json['image']
           : json['image']?['url'] ?? '',
-
-      categoryId: json['category'] != null ? json['category']['_id'] ?? '' : '',
+      categoryId: catId,
       isActive: json['isActive'] ?? true,
-      categoryName: json['category'] != null
-          ? json['category']['name'] ?? ''
-          : '',
+      categoryName: catName,
     );
   }
 }

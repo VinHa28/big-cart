@@ -1,4 +1,5 @@
-import 'package:app/mock/mock_data.dart';
+import 'package:app/models/cart.dart';
+import 'package:app/services/cart_service.dart';
 import 'package:app/screens/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/cart_item_widget.dart';
@@ -8,20 +9,61 @@ class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  State<CartScreen> createState() => CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
-  double get subtotal => cartItems.fold(
-    0,
-    (sum, item) => sum + (item.product.price * item.quantity),
-  );
+class CartScreenState extends State<CartScreen> {
+  final CartService _cartService = CartService();
+  Cart? _cart;
+  bool _isLoading = true;
+
+  // Giả sử lấy userId từ login, ở đây dùng ID cứng để test theo yêu cầu của bạn
+  final String userId = "69bfa2020213cda8607ee688";
   double shipping = 1.6;
 
   @override
+  void initState() {
+    super.initState();
+    fetchCart();
+  }
+
+  // Lấy dữ liệu giỏ hàng từ backend
+  Future<void> fetchCart() async {
+    setState(() => _isLoading = true);
+    final data = await _cartService.getCart(userId);
+    setState(() {
+      _cart = data;
+      _isLoading = false;
+    });
+  }
+
+  // Xử lý tăng số lượng (Add)
+  void _handleIncrease(String productId) async {
+    final success = await _cartService.addToCart(
+      userId: userId,
+      productId: productId,
+      quantity: 1,
+    );
+    if (success) {
+      fetchCart(); // Cập nhật lại UI từ server
+    }
+  }
+
+  // Xử lý giảm số lượng (Remove bớt 1)
+  void _handleDecrease(String productId) async {
+    final updatedCart = await _cartService.removeFromCart(userId, productId);
+    if (updatedCart != null) {
+      setState(() => _cart = updatedCart); // Cập nhật state với data mới
+    } else {
+      // Nếu có lỗi hoặc item cuối cùng bị xóa, load lại để chắc chắn
+      fetchCart();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Biến kiểm tra giỏ hàng trống
-    bool isCartEmpty = cartItems.isEmpty;
+    // Kiểm tra trạng thái loading hoặc giỏ hàng trống
+    bool isCartEmpty = _cart == null || _cart!.items.isEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
@@ -38,143 +80,40 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
       ),
-      // LOGIC THAY ĐỔI BODY TẠI ĐÂY
-      body: isCartEmpty
-          ? _buildEmptyCartBody(context) // Nếu trống, hiện Empty Body
-          : _buildActiveCartBody(), // Nếu có hàng, hiện Active Body (Code cũ)
-    );
-  }
-
-  Widget _buildEmptyCartBody(BuildContext context) {
-    return Column(
-      children: [
-        // Phần nội dung chính ở giữa
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(25.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          : isCartEmpty
+          ? _buildEmptyCart()
+          : Column(
               children: [
-                // Icon túi mua sắm màu xanh lá cây
-                Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 100,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: 30),
-                // Tiêu đề
-                const Text(
-                  "Your cart is empty !",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: _cart!.items.length,
+                    itemBuilder: (context, index) {
+                      final item = _cart!.items[index];
+                      return CartItemWidget(
+                        cartItem: item,
+                        onAdd: () => _handleIncrease(item.product.id),
+                        onRemove: () => _handleDecrease(item.product.id),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 15),
-                // Phụ đề (Bạn có thể đổi text này cho phù hợp logic)
-                Text(
-                  "You will get a response within\na few minutes.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    height: 1.5,
-                  ),
-                ),
+                _buildOrderSummary(),
               ],
             ),
-          ),
-        ),
-
-        // Nút "Start shopping" cố định ở dưới cùng
-        Padding(
-          padding: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
-          child: SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, "/home");
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                "Start shopping",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
-  // ==========================================
-  // 2. WIDGET CHO MÀN HÌNH ACTIVE CART (CODE CŨ)
-  // ==========================================
-  Widget _buildActiveCartBody() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: cartItems.length,
-            itemBuilder: (context, index) {
-              final item = cartItems[index];
-
-              return Dismissible(
-                key: Key(item.product.id),
-                direction: DismissDirection.endToStart,
-                onDismissed: (direction) {
-                  setState(() {
-                    cartItems.removeAt(index);
-                  });
-                },
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  margin: const EdgeInsets.only(bottom: 15),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ),
-                child: CartItemWidget(
-                  cartItem: item,
-                  onAdd: () => setState(() => item.quantity++),
-                  onRemove: () {
-                    if (item.quantity > 1) {
-                      setState(() => item.quantity--);
-                    }
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-        _buildCheckoutSection(),
-      ],
-    );
+  Widget _buildEmptyCart() {
+    return const Center(child: Text("Giỏ hàng của bạn đang trống"));
   }
 
-  // Phần tính tổng tiền (Dành cho Active Cart)
-  Widget _buildCheckoutSection() {
+  Widget _buildOrderSummary() {
+    final subtotal = _cart?.totalPrice ?? 0.0;
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: const BoxDecoration(
@@ -182,91 +121,79 @@ class _CartScreenState extends State<CartScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Subtotal",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              Text(
-                "\$${subtotal.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
+          _buildSummaryRow("Subtotal", "\$${subtotal.toStringAsFixed(2)}"),
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Shipping charges",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              Text(
-                "\$${shipping.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
+          _buildSummaryRow("Shipping", "\$${shipping.toStringAsFixed(2)}"),
           const Divider(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Total",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "\$${(subtotal + shipping).toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          _buildSummaryRow(
+            "Total",
+            "\$${(subtotal + shipping).toStringAsFixed(2)}",
+            isTotal: true,
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CheckoutScreen(
-                      cartItems: cartItems,
-                      subtotal: subtotal,
-                      shipping: shipping,
-                    ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: const Text(
-                "Checkout",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+          _buildCheckoutButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isTotal ? 20 : 16,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            color: isTotal ? Colors.black : Colors.grey,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isTotal ? 20 : 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCheckoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: () {
+          // Điều hướng sang Checkout và truyền dữ liệu thật
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CheckoutScreen(
+                cartItems: _cart!.items,
+                subtotal: _cart!.totalPrice,
+                shipping: shipping,
               ),
             ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-        ],
+        ),
+        child: const Text(
+          "Checkout",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }

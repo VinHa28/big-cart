@@ -39,17 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      print("Start login...");
-
       final result = await _authService.login(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-
-      print("Result: $result");
-
       if (!mounted) return;
-
       setState(() => _isLoading = false);
 
       if (result['success'] == true) {
@@ -70,8 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print("Login error: $e");
-
       if (!mounted) return;
 
       setState(() => _isLoading = false);
