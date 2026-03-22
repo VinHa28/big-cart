@@ -21,7 +21,7 @@ class Category {
       name: json['name'],
       description: json['description'] ?? '',
       image: json['image'] ?? '',
-      color: json['color'] ?? '9E9E9E',
+      color: json['color'] ?? '4CAF50',
     );
   }
 

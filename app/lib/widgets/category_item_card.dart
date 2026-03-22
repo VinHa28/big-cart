@@ -38,7 +38,19 @@ class CategoryItemCard extends StatelessWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
-                child: SvgPicture.asset(category.image, fit: BoxFit.contain),
+                child: category.image.endsWith('.svg')
+                    ? SvgPicture.network(
+                        category.image,
+                        fit: BoxFit.contain,
+                        placeholderBuilder: (context) =>
+                            const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Image.network(
+                        category.image,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.image_not_supported),
+                      ),
               ),
             ),
             const SizedBox(height: 10),

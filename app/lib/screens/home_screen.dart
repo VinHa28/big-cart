@@ -1,6 +1,8 @@
 import 'package:app/constants/app_assets.dart';
 import 'package:app/mock/mock_data.dart';
+import 'package:app/models/category.dart';
 import 'package:app/screens/product_list_screen.dart';
+import 'package:app/services/category_service.dart';
 import 'package:app/widgets/category_card.dart';
 import 'package:app/widgets/product_card.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -17,6 +19,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
 
+  final CategoryService _categoryService = CategoryService();
+  List<Category> _categories = [];
+  bool _isLoadingCategories = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final data = await _categoryService.getAllCategories();
+      setState(() {
+        _categories = data;
+        _isLoadingCategories = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
+  }
+
   final List<String> imgList = [
     AppAssets.banner1,
     AppAssets.banner2,
@@ -27,20 +53,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      // Sử dụng SafeArea để tránh tai thỏ, phần khuyết
       body: SafeArea(
         child: CustomScrollView(
-          // Danh sách các slivers (mảnh ghép cuộn)
           slivers: [
             // 1. App Bar cuộn (chứa Search Bar)
-            // SliverAppBar(
-            //   backgroundColor: AppColors.scaffoldBackground,
-            //   elevation: 0,
-            //   floating: true, // App bar xuất hiện ngay khi cuộn xuống
-            //   pinned: false, // App bar không cố định khi cuộn lên hết
-            //   title: _buildSearchBar(),
-            //   automaticallyImplyLeading: false, // Ẩn nút back mặc định nếu có
-            // ),
+            SliverAppBar(
+              backgroundColor: AppColors.scaffoldBackground,
+              elevation: 0,
+              floating: true, // App bar xuất hiện ngay khi cuộn xuống
+              pinned: false, // App bar không cố định khi cuộn lên hết
+              title: _buildSearchBar(),
+              automaticallyImplyLeading: false, // Ẩn nút back mặc định nếu có
+            ),
 
             // 2. Banner và Tiêu đề Categories
             SliverToBoxAdapter(
@@ -221,29 +245,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Widget Category List (ListView nằm ngang)
   Widget _buildCategoryList() {
+    if (_isLoadingCategories) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_categories.isEmpty) {
+      return const SizedBox(height: 80, child: Center(child: Text("No data")));
+    }
+
     return SizedBox(
-      height: 80, // Tăng nhẹ chiều cao
+      height: 85,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: dummyCategories.length,
+        padding: const EdgeInsets.only(left: 20), // Tạo khoảng cách lề trái
+        itemCount: _categories.length,
         itemBuilder: (context, index) {
-          // Thêm padding phải cho từng card trừ card cuối
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index == dummyCategories.length - 1 ? 20.0 : 0.0,
-            ),
-            child: CategoryCard(
-              category: dummyCategories[index],
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ProductListScreen(category: dummyCategories[index]),
-                  ),
-                );
-              },
-            ),
+          return CategoryCard(
+            category: _categories[index],
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductListScreen(category: _categories[index]),
+                ),
+              );
+            },
           );
         },
       ),

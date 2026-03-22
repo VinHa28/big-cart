@@ -22,22 +22,13 @@ class CategoryCard extends StatelessWidget {
               height: 52,
               width: 52,
               decoration: BoxDecoration(
-                color: category.colorValue,
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.075),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(
                 12,
               ), // Tạo khoảng cách cho ảnh bên trong
-              child: category.image.startsWith('http')
-                  ? Image.network(category.image, fit: BoxFit.contain)
-                  : category.image.endsWith('.svg')
-                  ? SvgPicture.asset(
-                      category.image,
-                      fit: BoxFit.contain,
-                      placeholderBuilder: (context) =>
-                          const CircularProgressIndicator(),
-                    )
-                  : Image.asset(category.image, fit: BoxFit.contain),
+              child: _buildImage(),
             ),
             const SizedBox(height: 6),
             // Tên danh mục
@@ -58,5 +49,35 @@ class CategoryCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    final image = category.image;
+
+    // 1. Nếu là SVG (ưu tiên check trước)
+    if (image.endsWith('.svg')) {
+      if (image.startsWith('http')) {
+        return SvgPicture.network(
+          image,
+          fit: BoxFit.contain,
+          placeholderBuilder: (context) =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        );
+      } else {
+        return SvgPicture.asset(image, fit: BoxFit.contain);
+      }
+    }
+
+    // 2. Nếu là ảnh thường (png, jpg...)
+    if (image.startsWith('http')) {
+      return Image.network(
+        image,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.image_not_supported, size: 20),
+      );
+    } else {
+      return Image.asset(image, fit: BoxFit.contain);
+    }
   }
 }

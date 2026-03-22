@@ -85,3 +85,24 @@ export const deleteCategory = async (req, res) => {
     res.status(400).json({ message: "Invalid ID" });
   }
 };
+
+export const getCategoriesApp = async (req, res) => {
+  try {
+    // Lấy tất cả category có trạng thái isActive là true
+    const categories = await Category.find({ isActive: true }).sort({
+      name: 1,
+    });
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      data: categories,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy danh sách danh mục",
+      error: error.message,
+    });
+  }
+};

@@ -15,6 +15,7 @@ const categorySchema = new mongoose.Schema(
       type: String, // URL ảnh
       default: "",
     },
+    color: String,
     isActive: {
       type: Boolean,
       default: true,
