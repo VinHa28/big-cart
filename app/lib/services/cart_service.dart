@@ -5,13 +5,6 @@ import 'package:dio/dio.dart';
 class CartService {
   final Dio _dio = ApiClient.instance;
 
-  String _parseError(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['message'] ?? "Lỗi không xác định";
-    }
-    return "Lỗi kết nối server";
-  }
-
   /// Lấy giỏ hàng và chuyển đổi sang Object Cart
   Future<Cart?> getCart(String userId) async {
     try {

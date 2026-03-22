@@ -50,7 +50,6 @@ export const getCartByUserId = async (req, res) => {
     if (!cart) {
       return res.status(200).json({ items: [] });
     }
-    console.log(cart);
     res.status(200).json(cart);
   } catch (error) {
     res.status(500).json({ message: "Lỗi server", error: error.message });

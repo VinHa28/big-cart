@@ -34,11 +34,10 @@ export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate(
       "category",
-      "name"
+      "name",
     );
 
-    if (!product)
-      return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     res.json(product);
   } catch (error) {
@@ -52,8 +51,7 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product)
-      return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     Object.assign(product, req.body);
     await product.save();
@@ -70,11 +68,23 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product)
-      return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     res.status(400).json({ message: "Invalid ID" });
+  }
+};
+
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const products = await Product.find({ category: categoryId })
+      .populate("category", "name")
+      .sort({ createdAt: -1 });
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

@@ -51,4 +51,24 @@ class ProductService {
       throw Exception("Không tìm thấy sản phẩm");
     }
   }
+
+  Future<List<Product>> getProductsByCategory(String categoryId) async {
+    try {
+      // Gọi đến route mới ở backend
+      final response = await _dio.get('/products/category/$categoryId');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> productData = response.data;
+        return productData.map((json) => Product.fromJson(json)).toList();
+      } else {
+        throw Exception(_parseError(response.data));
+      }
+    } on DioException catch (e) {
+      print("Dio error: ${e.message}");
+      throw Exception(_parseError(e.response?.data));
+    } catch (e) {
+      print("Error in getProductsByCategory: $e");
+      throw Exception("Không thể tải sản phẩm theo danh mục");
+    }
+  }
 }
