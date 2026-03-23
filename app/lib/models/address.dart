@@ -1,4 +1,5 @@
 class Address {
+  final String? id; // Thêm trường ID (nullable)
   final String fullname;
   final String phoneNumber;
   final String address;
@@ -7,6 +8,7 @@ class Address {
   final bool isDefault;
 
   Address({
+    this.id, // Thêm vào constructor
     required this.fullname,
     required this.phoneNumber,
     required this.address,
@@ -17,10 +19,11 @@ class Address {
 
   factory Address.fromJson(Map<String, dynamic> json) {
     return Address(
-      fullname: json['fullname'],
-      phoneNumber: json['phoneNumber'],
-      address: json['address'],
-      city: json['city'],
+      id: json['_id'], // Map trường _id từ MongoDB vào id
+      fullname: json['fullname'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      address: json['address'] ?? '',
+      city: json['city'] ?? '',
       country: json['country'] ?? 'Vietnam',
       isDefault: json['isDefault'] ?? false,
     );
@@ -28,6 +31,7 @@ class Address {
 
   Map<String, dynamic> toJson() {
     return {
+      // 'id': id, // Thường không gửi ID khi tạo mới, server tự sinh
       'fullname': fullname,
       'phoneNumber': phoneNumber,
       'address': address,

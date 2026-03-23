@@ -1,9 +1,12 @@
 import 'package:app/constants/app_colors.dart';
 import 'package:app/models/address.dart';
+import 'package:app/services/address_service.dart';
+import 'package:app/services/order_service.dart';
+import 'package:app/screens/my_address_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/cart.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;
   final double subtotal;
   final double shipping;
@@ -16,17 +19,68 @@ class CheckoutScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Giả sử lấy địa chỉ mặc định đầu tiên
-    final defaultAddress = Address(
-      fullname: "Russell Austin",
-      phoneNumber: "+1 202 555 0142",
-      address: "2811 Crescent Day, LA Port",
-      city: "California",
-      country: "USA",
-      isDefault: true,
-    );
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
 
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  final AddressService _addressService = AddressService();
+  final OrderService _orderService = OrderService();
+  final String userId = "69bfa2020213cda8607ee688";
+
+  Address? _selectedAddress;
+  bool _isLoadingAddress = true;
+  bool _isPlacingOrder = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    try {
+      final addresses = await _addressService.getAllAddresses(userId);
+      if (addresses.isNotEmpty) {
+        setState(() {
+          _selectedAddress = addresses.firstWhere(
+            (a) => a.isDefault,
+            orElse: () => addresses.first,
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading address: $e");
+    } finally {
+      setState(() => _isLoadingAddress = false);
+    }
+  }
+
+  void _handlePlaceOrder() async {
+    if (_selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Vui lòng chọn địa chỉ giao hàng")),
+      );
+      return;
+    }
+
+    setState(() => _isPlacingOrder = true);
+    final success = await _orderService.createOrder(
+      userId: userId,
+      address: _selectedAddress!.toJson(),
+    );
+    setState(() => _isPlacingOrder = false);
+
+    if (success) {
+      _showSuccessDialog(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Đặt hàng thất bại. Vui lòng thử lại.")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
@@ -47,41 +101,53 @@ class CheckoutScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Địa chỉ nhận hàng
-            const Text(
+            _buildSectionHeader(
               "Delivery Address",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              onEdit: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyAddressScreen()),
+                );
+                _loadDefaultAddress();
+              },
             ),
-            const SizedBox(height: 15),
-            _buildAddressCard(defaultAddress),
-
+            _isLoadingAddress
+                ? const Center(child: CircularProgressIndicator())
+                : _buildAddressCard(),
             const SizedBox(height: 25),
-
-            // 2. Phương thức thanh toán (Chỉ COD)
-            const Text(
-              "Payment Method",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            _buildPaymentCard(),
-
-            const SizedBox(height: 25),
-
-            // 3. Tóm tắt đơn hàng
-            const Text(
-              "Order Summary",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
+            _buildSectionHeader("Order Summary"),
             _buildOrderSummary(),
+            const SizedBox(height: 25),
+            _buildTotalSection(),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomButton(context),
+      bottomNavigationBar: _buildBottomButton(),
     );
   }
 
-  Widget _buildAddressCard(Address addr) {
+  Widget _buildSectionHeader(String title, {VoidCallback? onEdit}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        if (onEdit != null)
+          TextButton(
+            onPressed: onEdit,
+            child: const Text(
+              "Change",
+              style: TextStyle(color: AppColors.primary),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAddressCard() {
+    if (_selectedAddress == null) return const Text("Chưa có địa chỉ nào.");
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -90,56 +156,27 @@ class CheckoutScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 30),
+          const Icon(Icons.location_on, color: AppColors.primary, size: 30),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  addr.fullname,
+                  _selectedAddress!.fullname,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  "${addr.address}, ${addr.city}",
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  "${_selectedAddress!.address}, ${_selectedAddress!.city}",
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  _selectedAddress!.phoneNumber,
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentCard() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.money, color: AppColors.primary, size: 30),
-          const SizedBox(width: 15),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Cash on Delivery",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "Pay when you receive the goods",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.check_circle, color: AppColors.primary),
         ],
       ),
     );
@@ -153,14 +190,56 @@ class CheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
+        children: widget.cartItems.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment
+                  .start, // Giúp căn chỉnh khi text xuống dòng
+              children: [
+                // 1. Phần tên sản phẩm (Sử dụng Expanded để chống tràn)
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    "${item.product.name} x${item.quantity}",
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // 2. Phần giá tiền
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "\$${(item.product.price * item.quantity).toStringAsFixed(2)}",
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTotalSection() {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
         children: [
-          _summaryRow("Items", "${cartItems.length}"),
-          _summaryRow("Subtotal", "\$${subtotal.toStringAsFixed(2)}"),
-          _summaryRow("Shipping", "\$${shipping.toStringAsFixed(2)}"),
+          _summaryRow("Subtotal", "\$${widget.subtotal.toStringAsFixed(2)}"),
+          _summaryRow("Shipping", "\$${widget.shipping.toStringAsFixed(2)}"),
           const Divider(height: 30),
           _summaryRow(
             "Total",
-            "\$${(subtotal + shipping).toStringAsFixed(2)}",
+            "\$${(widget.subtotal + widget.shipping).toStringAsFixed(2)}",
             isTotal: true,
           ),
         ],
@@ -169,57 +248,55 @@ class CheckoutScreen extends StatelessWidget {
   }
 
   Widget _summaryRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isTotal ? Colors.black : Colors.grey,
-              fontSize: isTotal ? 18 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
           ),
-          Text(
+        ),
+        // Dùng Flexible cho giá trị Total đề phòng con số quá lớn
+        Flexible(
+          child: Text(
             value,
+            textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: isTotal ? 18 : 14,
               fontWeight: FontWeight.bold,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildBottomButton(BuildContext context) {
-    return Container(
+  Widget _buildBottomButton() {
+    return Padding(
       padding: const EdgeInsets.all(20),
-      color: Colors.white,
       child: SizedBox(
         width: double.infinity,
         height: 60,
         child: ElevatedButton(
-          onPressed: () {
-            // Hiển thị dialog thành công hoặc chuyển hướng sang My Order
-            _showSuccessDialog(context);
-          },
+          onPressed: _isPlacingOrder ? null : _handlePlaceOrder,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
           ),
-          child: const Text(
-            "Place Order",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: _isPlacingOrder
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text(
+                  "Place Order",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
       ),
     );
@@ -240,16 +317,13 @@ class CheckoutScreen extends StatelessWidget {
               "Order Success!",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-            const Text(
-              "Your order has been placed successfully. You can track it in My Orders.",
-              textAlign: TextAlign.center,
-            ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, "/home");
-              },
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                "/home",
+                (route) => false,
+              ),
               child: const Text("Back to Home"),
             ),
           ],

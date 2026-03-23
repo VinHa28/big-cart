@@ -20,4 +20,8 @@ export const userService = {
   delete(id) {
     return axiosClient.delete(`/users/${id}`);
   },
+
+  getStats() {
+    return axiosClient.get("/admin/stats");
+  },
 };

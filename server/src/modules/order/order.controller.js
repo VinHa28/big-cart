@@ -1,65 +1,78 @@
-import Order from "./order.model.js";
-import User from "../user/user.model.js";
-import Product from "../product/product.model.js";
+import cartModel from "../cart/cart.model.js";
+import orderModel from "./order.model.js";
 
-// Create order. If body.user is missing, assign to a default user (first user with role 'user')
 export const createOrder = async (req, res) => {
   try {
-    const { user: userId, items, address } = req.body;
+    const { userId, address } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0)
-      return res.status(400).json({ message: "Items are required" });
-
-    // resolve user
-    let user = null;
-    if (userId) {
-      user = await User.findById(userId).lean();
-    } else {
-      user = await User.findOne({ role: "user" }).lean();
+    const cart = await cartModel
+      .findOne({ user: userId })
+      .populate("items.product");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: "Giỏ hàng trống" });
     }
 
-    if (!user) return res.status(400).json({ message: "No user found" });
+    const orderItems = cart.items.map((item) => ({
+      product: item.product._id,
+      quantity: item.quantity,
+      price: item.product.price,
+    }));
 
-    // Calculate total and validate products
-    let total = 0;
-    const resolvedItems = [];
-    for (const it of items) {
-      const product = await Product.findById(it.product).lean();
-      if (!product) return res.status(400).json({ message: `Product not found: ${it.product}` });
-      const price = product.price || 0;
-      const qty = it.quantity || 1;
-      total += price * qty;
-      resolvedItems.push({ product: product._id, quantity: qty, price });
-    }
-
-    const order = await Order.create({
-      user: user._id,
-      items: resolvedItems,
-      total,
-      address,
+    const total = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const newOrder = new orderModel({
+      user: userId,
+      items: orderItems,
+      total: total,
+      address: address,
     });
 
-    res.status(201).json(order);
+    await newOrder.save();
+    await cartModel.findOneAndDelete({ user: userId });
+
+    res.status(201).json({ message: "Đặt hàng thành công", order: newOrder });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const getOrders = async (req, res) => {
+export const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate("user", "username email").sort({ createdAt: -1 });
-    res.json(orders);
+    const orders = await orderModel
+      .find()
+      .populate("user", "username email")
+      .populate("items.product", "name image")
+      .sort({ createdAt: -1 });
+    res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const getOrderById = async (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate("user", "username email");
-    if (!order) return res.status(404).json({ message: "Order not found" });
-    res.json(order);
+    const { orderId, status } = req.body;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status: status },
+      { new: true },
+    );
+    res.status(200).json(updatedOrder);
   } catch (error) {
-    res.status(400).json({ message: "Invalid ID" });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserOrders = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const orders = await Order.find({ user: userId })
+      .populate("items.product")
+      .sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

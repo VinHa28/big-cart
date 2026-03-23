@@ -1,10 +1,16 @@
-import express from "express";
-import { createOrder, getOrders, getOrderById } from "./order.controller.js";
+import { Router } from "express";
+import {
+  createOrder,
+  getAllOrders,
+  getUserOrders,
+  updateOrderStatus,
+} from "./order.controller.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", createOrder);
-router.get("/", getOrders);
-router.get("/:id", getOrderById);
+router.post("/create", createOrder); // Flutter: Đặt hàng
+router.get("/user/:userId", getUserOrders); // Flutter: Lịch sử đơn hàng
+router.get("/all", getAllOrders); // React Admin: Xem tất cả
+router.put("/update-status", updateOrderStatus); // React Admin: Đổi trạng thái
 
 export default router;

@@ -20,4 +20,5 @@ export const categoryService = {
   delete(id) {
     return axiosClient.delete(`/categories/${id}`);
   },
+  
 };
