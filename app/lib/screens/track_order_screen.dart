@@ -1,10 +1,32 @@
+import 'package:app/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class TrackOrderScreen extends StatelessWidget {
-  const TrackOrderScreen({super.key});
+  final dynamic order; // Nhận dữ liệu đơn hàng từ màn hình trước
+
+  const TrackOrderScreen({super.key, required this.order});
+
+  // Hàm xác định xem một bước đã hoàn thành hay chưa dựa trên status của đơn hàng
+  bool _isStepCompleted(String stepStatus) {
+    final status = order['status'] ?? 'pending';
+
+    // Thứ tự ưu tiên của trạng thái
+    const statusOrder = ['pending', 'paid', 'shipped', 'completed'];
+
+    int currentIdx = statusOrder.indexOf(status);
+    int stepIdx = statusOrder.indexOf(stepStatus);
+
+    // Nếu đơn hàng bị cancel, xử lý riêng hoặc coi như không bước nào xong
+    if (status == 'cancelled') return false;
+
+    return currentIdx >= stepIdx;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final String orderId = order['_id'] ?? '';
+    final List items = order['items'] ?? [];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
@@ -24,7 +46,7 @@ class TrackOrderScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Card thông tin đơn hàng ở trên cùng
+            // Card thông tin tổng quan
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -36,86 +58,69 @@ class TrackOrderScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: const Icon(
-                      Icons.inventory_2_outlined,
-                      color: Colors.green,
-                      size: 30,
+                      Icons.shopping_cart,
+                      color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: 15),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Order #90897",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Order #...${orderId.substring(orderId.length - 6).toUpperCase()}",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      Text(
-                        "Placed on October 19 2021",
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                      Text(
-                        "Items: 10    Items: \$16.90",
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                    ],
+                        Text(
+                          "${items.length} Items  •  \$${(order['total'] ?? 0).toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 25),
-            // Timeline Tracking
-            Container(
-              padding: const EdgeInsets.all(25),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                children: [
-                  _buildTrackStep(
-                    "Order Placed",
-                    "October 21 2021",
-                    Icons.inventory_2_outlined,
-                    true,
-                    true,
-                  ),
-                  _buildTrackStep(
-                    "Order Confirmed",
-                    "October 21 2021",
-                    Icons.check_circle_outline,
-                    true,
-                    true,
-                  ),
-                  _buildTrackStep(
-                    "Order Shipped",
-                    "October 21 2021",
-                    Icons.local_shipping_outlined,
-                    true,
-                    true,
-                  ),
-                  _buildTrackStep(
-                    "Out for Delivery",
-                    "Pending",
-                    Icons.delivery_dining_outlined,
-                    false,
-                    true,
-                  ),
-                  _buildTrackStep(
-                    "Order Delivered",
-                    "Pending",
-                    Icons.shopping_cart_outlined,
-                    false,
-                    false,
-                  ),
-                ],
-              ),
+            const SizedBox(height: 30),
+
+            // Danh sách các bước tracking
+            _buildTrackStep(
+              icon: Icons.receipt_long,
+              title: "Order Placed",
+              subtitle: "We have received your order",
+              isCompleted: _isStepCompleted('pending'),
+              hasLine: true,
+            ),
+            _buildTrackStep(
+              icon: Icons.payment,
+              title: "Payment Confirmed",
+              subtitle: "Order has been paid successfully",
+              isCompleted: _isStepCompleted('paid'),
+              hasLine: true,
+            ),
+            _buildTrackStep(
+              icon: Icons.local_shipping,
+              title: "Shipped",
+              subtitle: "Your order is on the way",
+              isCompleted: _isStepCompleted('shipped'),
+              hasLine: true,
+            ),
+            _buildTrackStep(
+              icon: Icons.check_circle,
+              title: "Completed",
+              subtitle: "Order delivered successfully",
+              isCompleted: _isStepCompleted('completed'),
+              hasLine: false,
             ),
           ],
         ),
@@ -123,48 +128,48 @@ class TrackOrderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrackStep(
-    String title,
-    String date,
-    IconData icon,
-    bool isCompleted,
-    bool hasLine,
-  ) {
-    return IntrinsicHeight(
+  Widget _buildTrackStep({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isCompleted,
+    required bool hasLine,
+  }) {
+    return SizedBox(
+      height: 90,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Phần Icon và Line
+          // Phần cột Icon và Line
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: isCompleted
-                      ? const Color(0xFFE8F5E9)
-                      : Colors.grey[100],
+                  color: isCompleted ? AppColors.primary : Colors.grey[200],
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  color: isCompleted ? Colors.green : Colors.grey[400],
-                  size: 25,
+                  color: isCompleted ? Colors.white : Colors.grey[400],
+                  size: 20,
                 ),
               ),
               if (hasLine)
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isCompleted ? Colors.green : Colors.grey[200],
+                    color: isCompleted ? AppColors.primary : Colors.grey[200],
                   ),
                 ),
             ],
           ),
           const SizedBox(width: 20),
-          // Phần Text
+          // Phần nội dung chữ
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   title,
@@ -175,10 +180,9 @@ class TrackOrderScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  date,
-                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                  subtitle,
+                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
                 ),
-                const SizedBox(height: 30), // Khoảng cách giữa các bước
               ],
             ),
           ),

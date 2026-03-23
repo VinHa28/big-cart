@@ -54,7 +54,7 @@ export const getAllOrders = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
-    const updatedOrder = await Order.findByIdAndUpdate(
+    const updatedOrder = await orderModel.findByIdAndUpdate(
       orderId,
       { status: status },
       { new: true },
@@ -68,7 +68,8 @@ export const updateOrderStatus = async (req, res) => {
 export const getUserOrders = async (req, res) => {
   try {
     const { userId } = req.params;
-    const orders = await Order.find({ user: userId })
+    const orders = await orderModel
+      .find({ user: userId })
       .populate("items.product")
       .sort({ createdAt: -1 });
     res.status(200).json(orders);

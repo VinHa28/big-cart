@@ -4,6 +4,7 @@ import Dashboard from "../pages/Dashboard";
 import Categories from "../pages/Categories";
 import Products from "../pages/Products";
 import Users from "../pages/Users";
+import Orders from "../pages/Orders";
 
 export default function AdminRoutes() {
   return (
@@ -12,6 +13,7 @@ export default function AdminRoutes() {
       <Route path="categories" element={<Categories />} />
       <Route path="products" element={<Products />} />
       <Route path="users" element={<Users />} />
+      <Route path="orders" element={<Orders />} />
     </Route>
   );
 }

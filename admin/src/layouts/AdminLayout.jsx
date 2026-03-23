@@ -4,6 +4,7 @@ import {
   AppstoreOutlined,
   ShoppingOutlined,
   UserOutlined,
+  OrderedListOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
@@ -24,6 +25,11 @@ const menuItems = [
     key: "/products",
     icon: <ShoppingOutlined />,
     label: "Products",
+  },
+  {
+    key: "/orders",
+    icon: <OrderedListOutlined />,
+    label: "Orders",
   },
   {
     key: "/users",

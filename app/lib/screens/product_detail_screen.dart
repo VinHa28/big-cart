@@ -1,5 +1,6 @@
 import 'package:app/constants/app_colors.dart';
 import 'package:app/models/product.dart';
+import 'package:app/services/cart_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -14,6 +15,40 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int quantity = 1;
+  final CartService _cartService = CartService();
+  final String userId = "69bfa2020213cda8607ee688"; // User mặc định của bạn
+  bool _isAdding = false;
+
+  void _handleAddToCart() async {
+    setState(() => _isAdding = true);
+
+    final success = await _cartService.addToCart(
+      userId: userId,
+      productId: widget.product.id,
+      quantity: quantity,
+    );
+
+    setState(() => _isAdding = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Added ${widget.product.name} to cart!"),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to add to cart. Please try again."),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -231,32 +266,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   // Widget Nút Add to Cart
   Widget _buildAddToCartButton() {
-    return SizedBox(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       width: double.infinity,
-      height: 60,
+      height: 80,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _isAdding
+            ? null
+            : _handleAddToCart, // Disable khi đang gọi API
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
+          elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.shopping_bag_outlined, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              "Add to cart",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: _isAdding
+            ? const SizedBox(
+                height: 25,
+                width: 25,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.shopping_bag_outlined, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    "Add to cart",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

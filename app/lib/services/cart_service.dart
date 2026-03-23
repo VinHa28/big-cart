@@ -10,12 +10,6 @@ class CartService {
     try {
       final response = await _dio.get('/cart/$userId');
 
-      print('=== GET /cart/$userId DEBUG ===');
-      print('Status: ${response.statusCode}');
-      print('Data type: ${response.data.runtimeType}');
-      print('Full data: $response.data');
-      print('=============================');
-
       if (response.statusCode != 200) {
         print('Lỗi status: ${response.statusCode}');
         return null;
